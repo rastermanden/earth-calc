@@ -1,48 +1,9 @@
-<script type="text/javascript">
-        var gk_isXlsx = false;
-        var gk_xlsxFileLookup = {};
-        var gk_fileData = {};
-        function filledCell(cell) {
-          return cell !== '' && cell != null;
-        }
-        function loadFileData(filename) {
-        if (gk_isXlsx && gk_xlsxFileLookup[filename]) {
-            try {
-                var workbook = XLSX.read(gk_fileData[filename], { type: 'base64' });
-                var firstSheetName = workbook.SheetNames[0];
-                var worksheet = workbook.Sheets[firstSheetName];
-
-                // Convert sheet to JSON to filter blank rows
-                var jsonData = XLSX.utils.sheet_to_json(worksheet, { header: 1, blankrows: false, defval: '' });
-                // Filter out blank rows (rows where all cells are empty, null, or undefined)
-                var filteredData = jsonData.filter(row => row.some(filledCell));
-
-                // Heuristic to find the header row by ignoring rows with fewer filled cells than the next row
-                var headerRowIndex = filteredData.findIndex((row, index) =>
-                  row.filter(filledCell).length >= filteredData[index + 1]?.filter(filledCell).length
-                );
-                // Fallback
-                if (headerRowIndex === -1 || headerRowIndex > 25) {
-                  headerRowIndex = 0;
-                }
-
-                // Convert filtered JSON back to CSV
-                var csv = XLSX.utils.aoa_to_sheet(filteredData.slice(headerRowIndex)); // Create a new sheet from filtered array of arrays
-                csv = XLSX.utils.sheet_to_csv(csv, { header: 1 });
-                return csv;
-            } catch (e) {
-                console.error(e);
-                return "";
-            }
-        }
-        return gk_fileData[filename] || "";
-        }
-        </script><!DOCTYPE html>
+<!DOCTYPE html>
 <html lang="en">
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Planet Effective Temperature Calculator</title>
+    <title>Planet Effective Temperature Calculator: No Atmosphere Model</title>
     <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
     <script src="https://polyfill.io/v3/polyfill.min.js?features=es6"></script>
     <script id="MathJax-script" async src="https://cdn.jsdelivr.net/npm/mathjax@3/es5/tex-mml-chtml.js"></script>
@@ -64,14 +25,14 @@
             font-weight: bold;
             margin-top: 20px;
         }
-        .explanation {
+        .explanation, .albedo-explanation {
             margin-top: 40px;
             font-size: 16px;
         }
     </style>
 </head>
 <body>
-    <h1>Planet Effective Temperature Calculator</h1>
+    <h1>Planet Effective Temperature Calculator: No Atmosphere Model</h1>
     <div class="slider-container">
         <label for="albedoSlider">Albedo (0 to 1): </label>
         <input type="range" id="albedoSlider" min="0" max="1" step="0.01" value="0.3">
@@ -81,6 +42,11 @@
         Effective Temperature: <span id="temperatureDisplay">-18.2°C</span>
     </div>
     <canvas id="temperatureChart" height="200"></canvas>
+    <div class="albedo-explanation">
+        <h2>What is Albedo?</h2>
+        <p>Albedo is a measure of how much sunlight a surface reflects. Think of it as how shiny or dull a surface is to light. For planets, albedo determines how much solar energy is absorbed versus reflected, which directly affects the planet’s temperature.</p>
+        <p><strong>Example:</strong> Earth has an average albedo of about 0.3, meaning it reflects 30% of the sunlight that hits it. This balance helps keep Earth’s temperature moderate. Compare this to Venus, with an albedo of about 0.75, reflecting 75% of sunlight. Despite this high reflectivity, Venus is extremely hot due to its thick atmosphere trapping heat.</p>
+    </div>
     <div class="explanation">
         <h2>Formula Explanation</h2>
         <p>The effective temperature \( T \) of a planet is calculated using the formula:</p>
@@ -92,7 +58,7 @@
             <li>\( \sigma \) is the Stefan-Boltzmann constant (\( 5.670367 \times 10^{-8} \, \text{W/m}^2\text{K}^4 \)),</li>
             <li>The result is converted from Kelvin to Celsius by subtracting 273.15.</li>
         </ul>
-        <p>This formula balances the absorbed solar energy and the radiated thermal energy. The factor of 4 accounts for the planet absorbing energy over its cross-sectional area (a disk) and radiating it over its entire surface area (a sphere).</p>
+        <p>This formula balances the absorbed solar energy and the radiated thermal energy. The factor of 4 accounts for the planet absorbing energy over its cross-sectional area (a disk) and radiating it over its entire surface area (a sphere). <strong>Note:</strong> This model assumes no atmosphere, so it does not account for effects like the greenhouse effect.</p>
     </div>
     <script>
         // Constants
